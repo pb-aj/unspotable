@@ -40,18 +40,12 @@ def pca(arr, ncomp=None):
 
     #Run PCA using ncomp and svd_solver = "full"
     pca = PCA(n_components=ncomp, svd_solver = "full")
-    pca.fit(arr.T)
+    proj = pca.fit_transform(arr.T).T
 
     #Extract needed eigen information from PCA fit
     evalues  = pca.explained_variance_
     evectors = pca.components_
     evectors = evectors.T
-    emean = pca.mean_
-
-    # Generate ecurves design matrix (proj)
-    arr = arr.T
-    m = (arr - emean).T
-    proj = np.dot(m.T,evectors).T
             
         
     return evalues, evectors, proj

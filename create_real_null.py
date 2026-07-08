@@ -343,7 +343,9 @@ def intensity_animations(realistic_star, ratio_no_limb, lat= 0, fname=None,
                  colorbar="bottom", colorbar_label=True, marker_color="darkgrey",
                  interval=75, fps=10):
     
-    """NEED TO TEST MORE EXTRA FEATURES"""
+    """NEED TO TEST EXTRA FEATURES MORE
+    also, starry only compute intensity for i = 90 (star frame), so this is not fully accurate
+    But the ratio_to_no_limb factor is the same based only on the udeg coeffs"""
     
     theta_face = np.linspace(-90,90,91)
     

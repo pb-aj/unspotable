@@ -698,6 +698,7 @@ class MapBase(object):
         #added label for colorbar
         colorbar_size = kwargs.pop("colorbar_size", "5%")
         colorbar_pad = kwargs.pop("colorbar_pad", 0.03)
+        colorbar_fontsize = kwargs.pop("colorbar_fontsize", 12)
         show_image = kwargs.pop("show_image",True) #Adding option to not display the plot
         """show_image being False does not display any image but instead returns a list 
         constaining the img, image, and lonlines values of the animated image"""
@@ -929,7 +930,7 @@ class MapBase(object):
             )
             if colorbar_label:
                 cbar = fig.colorbar(img, cax=cax, orientation="horizontal")
-                cbar.set_label(colorbar_label, size=12)
+                cbar.set_label(colorbar_label, size=colorbar_fontsize)
             else:
                 fig.colorbar(img, cax=cax, orientation="horizontal")
 
@@ -943,7 +944,7 @@ class MapBase(object):
             )
             if colorbar_label:
                 cbar = fig.colorbar(img, cax=cax, orientation="vertical")
-                cbar.set_label(colorbar_label, size=12)
+                cbar.set_label(colorbar_label, size=colorbar_fontsize)
             else:
                 fig.colorbar(img, cax=cax, orientation="vertical")
 
@@ -2306,6 +2307,7 @@ class LimbDarkenedBase(object):
         .. note::
             Users must provide either `mu` **or** `x` and `y`.
         """
+        
         # Get the Cartesian points
         if mu is not None:
             mu = self._math.vectorize(self._math.cast(mu))

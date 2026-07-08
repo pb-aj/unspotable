@@ -124,19 +124,74 @@ def adjust_star(star, lower_limit=0, uni_comp = None, iterator = .1):
 def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None,
                  flux_name=None,rv_name=None,flux_only=False,rv_only=False,
                  transparent=False, labels=True, title = None, border=True, ticks=True, 
-                 centerline=True, fontsize=16, color="sandybrown", cline_color="k"):
+                 fontsize=16, color="sandybrown", centerline=True, cline_color="k", dpi=300):
     """
-    [desc]
+    Generate plots to show rotational light curves (flux) and/or rv curves for a set rv_star and theta
 
     Arguments
     ---------
-    x: type (optional)
-        [desc]
+    rv_star: object
+        A starry star object, initialized with a cfg file
+    
+    theta: 2D array (optional)
+        Degrees to evaluate light curve at for each emap.  Default is every degree - np.linspace(0, 360, 361)
+
+    flux: 1D array (optional)
+        Flux values to plot.  If None, will calculate flux using theta and rv_star.  Default is None
+        **NOTE** flux must be same shape as theta
+
+    rv: 1D array (optional)
+        RV values to plot.  If None, will calculate rv using theta and rv_star.  Default is None
+        **NOTE** rv must be same shape as theta
+
+    flux_name: string (optional)
+        Name to save flux plot as.  If None or empty, will display plot instead
+
+    rv_name: string (optional)
+        Name to save rv plot as.  If None or empty, will display plot instead
+
+    flux_only: boolean (optional)
+        Whether to plot only the flux curve.  Default is False
+
+    rv_only: boolean (optional)
+        Whether to plot only the rv curve.  Default is False
+
+    **NOTE** If both rv_only and flux_only is True there will be no plot!
+
+    transparent: boolean (optional)
+        Whether to make plots transparent when saving.  Default to False
+
+    labels: boolean (optional)
+        Wether to add axis labels to each plot.  Default to True
+
+    title: str (optional)
+        If value passed, will set it as the title of each plot.  Default is None
+
+    border: boolean (optional)
+        Wether to add border around each plot.  Default to True
+
+    ticks: boolean (optional)
+        If True, will add ticks and values to to each plot.  Default is True
+
+    fontsize: int (optional)
+        Sets size of axis labels, ticks, colorbar labels, and title.  Default is 16
+        fontsize is scaled from value to ensure relative size between each object is reasonable
+
+    color: string (optional)
+        Color to make the line in each plot.  Default is sandybrown
+
+    centerline: boolean (optional)
+        Whether to include a dotted line at center of each curve.  Default is True
+
+    cline_color: string (optional)
+        Color to make the centerline in each plot if centerline=True.  Default is sandybrown
+
+    dpi: int (optional)
+        dpi to save plot as.  Default is 300 and will only work if flux_name or rv_name is set.
 
     Returns
     -------
-    x: type
-        [desc]
+    None
     """
 
     if not rv_only:
@@ -164,6 +219,23 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
             plt.gca().set_xticklabels([])
             plt.gca().set_yticklabels([])
             plt.tick_params(left=False, bottom=False)
+
+            min_f = np.min(flux)
+            max_f = np.max(flux)
+
+            if np.isclose(max_f,0) and np.isclose(min_f,0):
+                interval = .05
+                plt.ylim(min_f - interval, max_f + interval)
+
+            elif max_f - min_f < 1e-10:
+                interval = max_f * .05
+                plt.ylim(min_f - interval * 1.05, max_f + interval * 1.05)
+
+            else:
+                amp = max_f - min_f
+                buffer = 0.05 
+                plt.ylim(min_f - amp*buffer, max_f + amp*buffer)
+
         else:
             plt.gca().set_xticks([-135,-90,-45,0,45,90,135])
             plt.gca().set_xticklabels([-135,-90,-45,0,45,90,135])
@@ -175,7 +247,14 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
 
             plt.tick_params(direction="in")
 
-            if max_f - min_f < 1e-10:
+            if np.isclose(max_f,0) and np.isclose(min_f,0):
+                interval = .05
+                y_tick_values = [max_f - interval, np.abs(max_f), max_f + interval] 
+                plt.yticks(y_tick_values)
+                plt.gca().set_yticklabels([f"{val:.2f}" for val in y_tick_values])
+                plt.ylim(min_f - interval, max_f + interval)
+
+            elif max_f - min_f < 1e-10:
                 interval = max_f * .05
                 y_tick_values = [max_f - interval, max_f, max_f + interval] 
                 plt.yticks(y_tick_values)
@@ -198,7 +277,7 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
 
         plt.tight_layout()
         if flux_name:
-            plt.savefig(flux_name, dpi = 300, transparent=transparent)
+            plt.savefig(flux_name, dpi = dpi, transparent=transparent)
         else:
             plt.show()
         plt.close()
@@ -237,14 +316,28 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
 
             plt.tick_params(direction="in")
 
-            amp = max_f - min_f
+            if np.isclose(max_f,0) and np.isclose(min_f,0):
+                interval = .05
+                y_tick_values = [max_f - interval, np.abs(max_f), max_f + interval] 
+                plt.yticks(y_tick_values)
+                plt.gca().set_yticklabels([f"{val:.2f}" for val in y_tick_values])
+                plt.ylim(min_f - interval, max_f + interval)
 
-            buffer = 0.05 
+            elif max_f - min_f < 1e-10:
+                interval = max_f * .05
+                y_tick_values = [max_f - interval, max_f, max_f + interval] 
+                plt.yticks(y_tick_values)
+                plt.gca().set_yticklabels([f"{val:.2f}" for val in y_tick_values])
+                plt.ylim(min_f - interval * 1.05, max_f + interval * 1.05)
+            else:
+                amp = max_f - min_f
 
-            y_tick_values = [min_f, (min_f) / 2, 0, (max_f) / 2, max_f] 
-            plt.yticks(y_tick_values)
-            plt.gca().set_yticklabels([f"{val:.2f}" for val in y_tick_values])
-            plt.ylim(min_f - amp*buffer, max_f + amp*buffer)
+                buffer = 0.05 
+
+                y_tick_values = [min_f, (min_f) / 2, 0, (max_f) / 2, max_f] 
+                plt.yticks(y_tick_values)
+                plt.gca().set_yticklabels([f"{val:.2f}" for val in y_tick_values])
+                plt.ylim(min_f - amp*buffer, max_f + amp*buffer)
 
 
         if not border:
@@ -252,7 +345,7 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
         
         plt.tight_layout()
         if rv_name:
-            plt.savefig(rv_name, dpi = 300, transparent=transparent)
+            plt.savefig(rv_name, dpi = dpi, transparent=transparent)
         else:
             plt.show()
         plt.close()
@@ -261,17 +354,27 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
 
 def multi_phase_plot(rv_star,fname=None,cmap=cm.bam,norm=None):
     """
-    [desc]
+    Function to generate plot of rv_star at different phase to show both flux value and rv value
+    **NOTE** This function is not super developed as it was useful in code development but not needed in final versions.
 
     Arguments
     ---------
-    x: type (optional)
-        [desc]
+    rv_star: object
+        A starry star object, initialized with a cfg file
+
+    fname: string (optional)
+        Name to save figure as, but if None will display figure.  Default is None
+
+    cmap: str (optional)
+        What color map to use in plots.  Default is cm.bam
+        To use the original starry colors, set to 'plasma'
+    
+    norm: Matplotlib Normalization (optional)
+        Normalization to use for map, if None uses no norm.  Default is None
 
     Returns
     -------
-    x: type
-        [desc]
+    None
     """
 
     nrows = 3
@@ -290,10 +393,10 @@ def multi_phase_plot(rv_star,fname=None,cmap=cm.bam,norm=None):
         ax2 = axes[yloc, xloc+ncols]
 
         rv_star.map.show(rv=False,theta=degree,ax=ax,figsize=(5,5),cmap=cmap,norm=norm)
-        ax.set_title(f"{rv_star.map.flux(theta=degree).eval()[0]:.3f}")
+        ax.set_title(f"{rv_star.map.flux(theta=degree).eval()[0]:.3g}")
 
         rv_star.map.show(rv=True,theta=degree,ax=ax2,figsize=(5,5),cmap=cm.vik)
-        ax2.set_title(f"{rv_star.map.rv(theta=degree).eval()[0]:.3f}")
+        ax2.set_title(f"{rv_star.map.rv(theta=degree).eval()[0]:.3g}")
 
         degree += int(360/number_plots)
     
@@ -307,9 +410,11 @@ def multi_phase_plot(rv_star,fname=None,cmap=cm.bam,norm=None):
         plt.show()
     plt.close(fig)
 
+
+
 def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cmap = cm.buda,
                    maps_only = False, flux_only = False, rv_only = False, color="sandybrown",
-                   interval = 75, fps = 10, fontsize=16, map_gridlines=True, map_labels=True, norm=None,
+                   interval = 75, fps = 10, fontsize=16, map_labels=True, norm=None,
                    colorbar="bottom", colorbar_label=True, transparent=False, marker_color = "darkgrey",
                    curve_border=True, curve_labels=True, ticks=True, legend=False, curve_gridlines=False,
                    centerline=True, cline_color="k",guideline=True, guideline_color="k", 
@@ -340,9 +445,6 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
 
     fontsize: int (optional)
         Sets size of axis labels and title (1.5x axis).  Default is 24
-
-    map_gridlines: boolean (optional)
-        If True, will add grid lines to ortho map.  Default is True
 
     map_border: boolean (optional)
         Wether to add border around flux/RV maps.  Default to False
@@ -408,14 +510,14 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
             
                 if norm is None:
                     rv_star.map.show(theta=theta, ax=axes[0,0], rv=False,show_image=True, colorbar=colorbar, 
-                                    colorbar_label = flux_cbar_label,
-                                    cmap=cmap, grid=map_gridlines, colorbar_size="2.5%",
+                                    colorbar_label = flux_cbar_label, colorbar_fontsize= fontsize * .75,
+                                    cmap=cmap, colorbar_size="2.5%",
                                     file=fname, dpi = dpi, html5_video=html5_video,
                                     transparent=transparent, interval=interval, fps=fps)
                 else:
                     rv_star.map.show(theta=theta, ax=axes[0,0], rv=False,show_image=True, colorbar=colorbar, 
-                                    norm=norm, colorbar_label = flux_cbar_label, cmap=cmap,
-                                    grid=map_gridlines, colorbar_size="2.5%",
+                                    norm=norm, colorbar_label = flux_cbar_label, colorbar_fontsize= fontsize * .75,
+                                    cmap=cmap, colorbar_size="2.5%",
                                     file=fname, dpi = dpi, html5_video=html5_video,
                                     transparent=transparent, interval=interval, fps=fps)
             
@@ -481,8 +583,8 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                 if norm is None:
                     rv_star.map.show(theta=theta,rv=False, ax=axes[0,0], 
                                         colorbar_label=flux_cbar_label, show_image=True,
-                                        colorbar=colorbar, grid=map_gridlines,
-                                        cmap=cmap,
+                                        colorbar=colorbar, 
+                                        cmap=cmap, colorbar_fontsize= fontsize * .75,
                                         extra_lines = [(flux_data,flux_image)],
                                         legend_list = legend_list,
                                         file=fname, dpi = dpi, html5_video=html5_video,
@@ -490,8 +592,8 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                 else:
                     rv_star.map.show(theta=theta,rv=False, ax=axes[0,0], 
                                         colorbar_label=flux_cbar_label, show_image=True,
-                                        colorbar=colorbar, grid=map_gridlines,
-                                        cmap=cmap, norm=norm,
+                                        colorbar=colorbar, 
+                                        cmap=cmap, norm=norm, colorbar_fontsize= fontsize * .75,
                                         extra_lines = [(flux_data,flux_image)],
                                         legend_list = legend_list,
                                         file=fname, dpi = dpi, html5_video=html5_video,
@@ -516,7 +618,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
 
                 rv_star.map.show(theta=theta,rv=True, ax=axes[0,0],show_image=True, colorbar=colorbar, 
                             norm=matplotlib.colors.CenteredNorm(), colorbar_label = rv_cbar_label,
-                            grid=map_gridlines, colorbar_size="2.5%",
+                            colorbar_size="2.5%", colorbar_fontsize= fontsize * .75,
                             file=fname, dpi = dpi, html5_video=html5_video,
                             transparent=transparent, interval=interval, fps=fps, cmap=cm.vik)
             
@@ -576,7 +678,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                 if legend:
                     rv_star.map.show(theta=theta,rv=True, ax=axes[0,0],show_image=True, colorbar=colorbar, 
                                     norm=matplotlib.colors.CenteredNorm(), colorbar_label= rv_cbar_label,
-                                    grid=map_gridlines,
+                                    colorbar_fontsize= fontsize * .75,
                                     extra_lines = [(rv_data,rv_image)],
                                     legend_list = [L_rv],
                                     file=fname, dpi = dpi, html5_video=html5_video,
@@ -584,7 +686,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                 else:
                     rv_star.map.show(theta=theta,rv=True, ax=axes[0,0],show_image=True, colorbar=colorbar, 
                                     norm=matplotlib.colors.CenteredNorm(), colorbar_label = rv_cbar_label,
-                                    grid=map_gridlines,
+                                    colorbar_fontsize= fontsize * .75,
                                     extra_lines = [(rv_data,rv_image)],
                                     file=fname, dpi = dpi, html5_video=html5_video,
                                     transparent=transparent, interval=interval, fps=fps,
@@ -611,21 +713,21 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                 rv_cbar_label = None
 
             if norm is None:
-                img1,image1,lonlines1,latlines1 = rv_star.map.show(theta=theta,rv=False, ax=axes[0,0], 
+                img1,image1,lonlines1,latlines1 = rv_star.map.show(theta=theta,rv=False, ax=axes[0,0], colorbar_fontsize= fontsize * .75,
                                                                    colorbar_label=flux_cbar_label, show_image=False,
-                                                                   colorbar=colorbar, grid=map_gridlines,
+                                                                   colorbar=colorbar,
                                                                    cmap=cmap, colorbar_size="2.5%", 
                                                                    )
             else:
-                img1,image1,lonlines1,latlines1 = rv_star.map.show(theta=theta,rv=False, ax=axes[0,0], 
+                img1,image1,lonlines1,latlines1 = rv_star.map.show(theta=theta,rv=False, ax=axes[0,0], colorbar_fontsize= fontsize * .75,
                                                                    colorbar_label=flux_cbar_label, show_image=False,
-                                                                   colorbar=colorbar, grid=map_gridlines, colorbar_size="2.5%", 
+                                                                   colorbar=colorbar, colorbar_size="2.5%", 
                                                                    cmap=cmap, norm=norm)
         
 
             rv_star.map.show(theta=theta,rv=True, ax=axes[0,1],show_image=True, colorbar=colorbar, 
                             norm=matplotlib.colors.CenteredNorm(), colorbar_label = rv_cbar_label,
-                            grid=map_gridlines, colorbar_size="2.5%",
+                            colorbar_size="2.5%", colorbar_fontsize= fontsize * .75,
                             extra_image=[img1,image1,lonlines1,latlines1],
                             file=fname, dpi = dpi, html5_video=html5_video,
                             transparent=transparent, interval=interval, fps=fps, cmap=cm.vik)
@@ -705,12 +807,12 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
 
             if not norm is None:
                 img1,image1,lonlines1,latlines1 = rv_star.map.show(theta=theta,rv=False, ax=axes[0,0], colorbar_label=flux_cbar_label,
-                                                                show_image=False,colorbar=colorbar, grid=map_gridlines,
-                                                                cmap=cmap, norm=norm)
+                                                                show_image=False,colorbar=colorbar,
+                                                                cmap=cmap, norm=norm, colorbar_fontsize= fontsize * .75,)
             else:
                 img1,image1,lonlines1,latlines1 = rv_star.map.show(theta=theta,rv=False, ax=axes[0,0], colorbar_label=flux_cbar_label,
-                                                                show_image=False,colorbar=colorbar, grid=map_gridlines,
-                                                                cmap=cmap)
+                                                                show_image=False,colorbar=colorbar, 
+                                                                cmap=cmap, colorbar_fontsize= fontsize * .75,)
 
             if not curve_border:
                 ax_flux.set_frame_on(False)
@@ -719,7 +821,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
             if legend:
                 rv_star.map.show(theta=theta,rv=True, ax=axes[0,1],show_image=True, colorbar=colorbar, 
                                 norm=matplotlib.colors.CenteredNorm(), colorbar_label= rv_cbar_label,
-                                grid=map_gridlines,
+                                colorbar_fontsize= fontsize * .75,
                                 extra_image=[img1,image1,lonlines1,latlines1],
                                 extra_lines = [(flux_data,flux_image),(rv_data,rv_image)],
                                 legend_list = [L_flux,L_rv],
@@ -728,12 +830,15 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
             else:
                 rv_star.map.show(theta=theta,rv=True, ax=axes[0,1],show_image=True, colorbar=colorbar, 
                                 norm=matplotlib.colors.CenteredNorm(), colorbar_label = rv_cbar_label,
-                                grid=map_gridlines,
+                                colorbar_fontsize= fontsize * .75,
                                 extra_image=[img1,image1,lonlines1,latlines1],
                                 extra_lines = [(flux_data,flux_image),(rv_data,rv_image)],
                                 file=fname, dpi = dpi, html5_video=html5_video,
                                 transparent=transparent, interval=interval, fps=fps, cmap=cm.vik)
-    plt.close(fig)
+    try:
+        plt.close(fig)
+    except:
+        pass
 
 
 

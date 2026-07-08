@@ -9,7 +9,7 @@ Modifications made by A.J. deVaux (https://github.com/pb-aj/un-spot-able)
 import numpy as np
 import pca
 
-def mkcurves(star, nt, lmax, ncurves, use_y00):
+def mkcurves(star, nt, lmax, ncurves):
     """
     Generates light curves for each spherical harmonic mode (excludin Y00) of passed star
     Runs the light curve design matrix (lcs) through pca to generate eigencurve design matrix
@@ -55,25 +55,11 @@ def mkcurves(star, nt, lmax, ncurves, use_y00):
         (ncurves, nt) array of the light curves that are passed into pca to generate the other return values
     """    
 
-    #Set up needed arrays
+    #Set up theta array
     thet = np.linspace(0, 360, nt)
-    lcs = np.zeros((ncurves, nt))
 
-    # Remove uniform component from light curves if use_y00 == False
-    # starry includes this by default, so no changes needed if use_y00 == True
-    if not use_y00:
-        star.map[:,:] = 0
-
-    # Loop through each harmonic map of the star, excluding Y00, to extract light curve
-    ind = 0
-    for i, l in enumerate(range(1, lmax + 1)):
-        for j, m in enumerate(range(-l, l + 1)):  
-            star.map[l, m] =  1 #set the map based on factor
-            lcs[ind] = star.map.flux(theta=thet).eval()
-
-            star.map[l, m] = 0.0 #reset map to initial state
-            ind += 1
-
+    #Pull out lightcurve design matrix & remove uniform contributions
+    lcs = star.map.design_matrix(theta=thet).eval().T[1:,:]
             
     # Run PCA to create orthogonal eigencurve basis set
     evalues, evectors, proj = pca.pca(lcs, ncomp=ncurves)

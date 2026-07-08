@@ -90,14 +90,11 @@ def create_eigens(cfile, prompt_user=True):
     se("\t------------------------------------------------",dp = dpm)
 
     A = star.map.design_matrix(theta=np.linspace(0,360,181)).eval()
-    R = np.empty((1, lmax))
 
-    R = [
-        np.linalg.matrix_rank(A[:, : (l + 1) ** 2]) for l in range(1, lmax + 1)
-    ]
+    R = np.linalg.matrix_rank(A)
 
     #Display rank for each spherical harmonic degree
-    se(f"\t\033[1mThe rank (# non-null maps) for lmax = {lmax} (ncurves = {int(A.shape[1])}) is {int(R[-1])}\033[0m",dp = dpm) 
+    se(f"\t\033[1mThe rank (# non-null maps) for lmax = {lmax} (ncurves = {int(A.shape[1])}) is {int(R)}\033[0m",dp = dpm) 
     se("\t------------------------------------------------\n",dp = dpm)
 
     lmax = cfg.sim.lmax
@@ -162,7 +159,7 @@ def create_eigens(cfile, prompt_user=True):
         se("----------------------------------------------------------------------------",dp = dpm)
         se(f"\tCalculating new eigen results and storing them in:\n\t\033[34m{eigen_path}\033[0m",dp = dpm)
         eigeny, evalues, evectors, ecurves, lcs = \
-        eigen.mkcurves(star, nlcs, lmax, ncurves, cfg.sim.use_y00)
+        eigen.mkcurves(star, nlcs, lmax, ncurves)
         
         np.savetxt(f"{eigen_path}/eigeny.txt", eigeny)
         np.savetxt(f"{eigen_path}/evalues.txt", evalues)
@@ -176,14 +173,10 @@ def create_eigens(cfile, prompt_user=True):
     se("----------------------------------------------------------------------------",dp = dpm)
     ecurve_A = ecurves.T
 
-    ecurve_R = np.empty((1, lmax))
-        
-    ecurve_R = [
-        np.linalg.matrix_rank(ecurve_A[:, : (l + 1) ** 2]) for l in range(1, lmax + 1)
-    ]
+    ecurve_R = np.linalg.matrix_rank(ecurve_A)
 
     #Display rank for each spherical harmonic degree of the ecurve design matrix
-    se(f"\t\033[1mThe rank (# non-null maps) for lmax = {lmax} (ncurves = {int(ecurve_A.shape[1])}) is {int(ecurve_R[-1])}\033[0m",dp = dpm)
+    se(f"\t\033[1mThe rank (# non-null maps) for lmax = {lmax} (ncurves = {int(ecurve_A.shape[1])}) is {int(ecurve_R)}\033[0m",dp = dpm)
     se("\n\tNote, the ecurve design matrix does not include the uniform map\n\tand thus the rank should one less than the spherical harmonic result.",dp = dpm)  
     se("----------------------------------------------------------------------------",dp = dpm)
     return eigeny, evalues, evectors, ecurves, lcs, star, fit
