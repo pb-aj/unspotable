@@ -1,5 +1,5 @@
 """
-[Description needed here]
+File to calculate RV of eigenmaps
 https://github.com/pb-aj/un-spot-able
 """
 
@@ -82,7 +82,7 @@ def set_rv_directory(fit):
 
 
 
-def adjust_star(star, lower_limit=0, uni_comp = None, iterator = .1):
+def adjust_star(star, lower_limit=0, uni_comp = 1, iterator = .2):
     """
     Adjust star to remove negative flux values by scaling uniform component.
     Exact lower limit and iterator can be changed depending on desired accurary
@@ -106,8 +106,7 @@ def adjust_star(star, lower_limit=0, uni_comp = None, iterator = .1):
     -------
     None
     """
-    if uni_comp:
-        star.map[0,0] = uni_comp
+    star.map[0,0] = uni_comp
 
     min_val = star.map.minimize()[-1].eval()
 
@@ -256,6 +255,9 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
 
             elif max_f - min_f < 1e-10:
                 interval = max_f * .05
+                if interval < 0.01:
+                    interval = 0.01
+                
                 y_tick_values = [max_f - interval, max_f, max_f + interval] 
                 plt.yticks(y_tick_values)
                 plt.gca().set_yticklabels([f"{val:.2f}" for val in y_tick_values])

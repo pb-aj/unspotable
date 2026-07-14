@@ -71,7 +71,7 @@ def mkcurves(star, nt, lmax, ncurves):
 
     # Utilize eigens to generate eigenmaps using spherical harmonic coefficients
     eigeny = np.zeros((ncurves, (lmax + 1)**2))
-    eigeny[:,0] = 1.0 # Y00 = 1 for all maps
+    eigeny[:,0] = 0 # Y00 = 0 for all maps
 
     for j in range(ncurves):
         yi  = 1
