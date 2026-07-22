@@ -588,6 +588,7 @@ class System(object):
         figsize=(3, 3),
         html5_video=True,
         window_pad=1.0,
+        rv=True,
         **kwargs,
     ):
         """Visualize the Keplerian system.
@@ -635,7 +636,7 @@ class System(object):
         get_val = evaluator(**kwargs)
 
         # Render the maps & get the orbital positions
-        if self._rv:
+        if self._rv and rv == True:
             self._primary.map._set_RV_filter()
             for sec in self._secondaries:
                 sec.map._set_RV_filter()

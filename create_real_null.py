@@ -281,7 +281,7 @@ def scale_real_map(realistic_star, uni_star_limb, scale_value, uni_comp, ratio_n
 
     
 def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180), uni_comp = 1,
-                     scale_star=1, scaler="lc", cmap=cm.buda):
+                     scale_star=1, scaler="lc", cmap=cm.buda, store_scaled=True):
 
     se("\tCalculating Flux Range Limits\n", dp=dpm)
 
@@ -296,6 +296,9 @@ def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180
     min_ratio = np.round(min_teff**4 / teff**4, decimals=2)
 
     max_ratio = np.round(max_teff**4 / teff**4, decimals=2)
+
+    if store_scaled:
+        scaled_null_eigens = []
 
     se("\tLooping through each null map and generating plots:",dp = dpm)
     se("\t------------------------------------------------",dp = dpm)
@@ -330,11 +333,11 @@ def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180
                         scale_value=scale_star, uni_comp=adj_uni_comp, 
                         ratio_no_limb=ratio_no_limb,scaler=scaler)
             
-
-        se(f'\t\t\u2022 Creating plots for "Null map {i}"', dp=dpm)
+        if store_scaled:
+            scaled_null_eigens.append(realistic_star.map.y.eval())
             
 
-        limb_int = uni_star_limb.map.intensity(lat=0, lon=np.linspace(-90,90,91),rv=False).eval()
+        se(f'\t\t\u2022 Creating plots for "Null map {i}"', dp=dpm)
         
         create_rv.map_animations(realistic_star, theta = theta,fname=f"{results_path}/{folder_name}/emap_animation.mp4", 
                        interval = ani_interval, transparent=False, cmap=cmap)
@@ -355,6 +358,13 @@ def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180
 
         se(f'\033[38;5;208m\t\t"Null map {i}" plots are complete!\033[0m', dp=dpm)
         se("\t\t------------------------------------------------", dp=dpm)
+    
+    if store_scaled:
+
+        subdir = cfg.folder
+        outdir = os.path.join(cfg.outdir, subdir)
+        norm_eigen_path = os.path.join(outdir,"stored-norm-null-eigens")
+        np.savetxt(f"{norm_eigen_path}/scaled-null-eigeny.txt", np.array(scaled_null_eigens))
 
 
 if __name__ == "__main__":
