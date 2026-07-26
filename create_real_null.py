@@ -281,7 +281,7 @@ def scale_real_map(realistic_star, uni_star_limb, scale_value, uni_comp, ratio_n
 
     
 def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180), uni_comp = 1,
-                     scale_star=1, scaler="lc", cmap=cm.buda, store_scaled=True):
+                     scale_star=1, scaler="lc", cmap=cm.buda, store_scaled=True, units=None):
 
     se("\tCalculating Flux Range Limits\n", dp=dpm)
 
@@ -340,20 +340,20 @@ def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180
         se(f'\t\t\u2022 Creating plots for "Null map {i}"', dp=dpm)
         
         create_rv.map_animations(realistic_star, theta = theta,fname=f"{results_path}/{folder_name}/emap_animation.mp4", 
-                       interval = ani_interval, transparent=False, cmap=cmap)
+                       interval = ani_interval, transparent=False, cmap=cmap, units=units)
         
         create_rv.map_animations(realistic_star, theta = theta[::2],fname=f"{results_path}/{folder_name}/emap_animation.gif", 
-                       interval = ani_interval, transparent=False, cmap=cmap)
+                       interval = ani_interval, transparent=False, cmap=cmap, units=units)
 
-        create_rv.flux_rv_line(realistic_star,
+        create_rv.flux_rv_line(realistic_star, units=units,
                      flux_name=f"{results_path}/{folder_name}/flux_curve.png",rv_name=f"{results_path}/{folder_name}/rv_curve.png")
         
         realistic_star.map.amp /= ratio_no_limb
         create_emaps.emap_plot(realistic_star, indiv_path=f"{results_path}/{folder_name}", proj='rect', other_fname=None, 
-                 transparent=False, colorbar=True, cmap=cmap)
+                 transparent=False, colorbar=True, cmap=cmap, units=units)
         
         create_emaps.emap_plot(realistic_star, indiv_path=f"{results_path}/{folder_name}", proj='moll', other_fname=None, 
-                 transparent=False, colorbar=True, cmap=cmap)
+                 transparent=False, colorbar=True, cmap=cmap, units=units)
         realistic_star.map.amp *= ratio_no_limb
 
         se(f'\033[38;5;208m\t\t"Null map {i}" plots are complete!\033[0m', dp=dpm)

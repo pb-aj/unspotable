@@ -70,7 +70,18 @@ def unspotable(cfile):
     se("\n\033[32mCreating realistic null maps:\033[0m", dp = dpm)
     se("----------------------------------------------------------------------------", dp = dpm)
 
-    create_real_null.create_real_null(null_eigens, fit, results_path)
+    if fit.cfg.star.units:
+        scaler = 5.670374419e-8 * fit.cfg.star.teff**4
+        power = int(np.floor(np.log10(scaler)))
+        if power > 6:
+            units = f"W m$^{{-2}}$ * 10$^{power}$"
+        else:
+            units = f"W m$^{{-2}}$"
+    else:
+        scaler = 1
+        units = None
+
+    create_real_null.create_real_null(null_eigens, fit, results_path, units=units, scale_star=scaler)
 
 if __name__ == "__main__":
     # Uncomment if you want to see command line arguments 

@@ -47,3 +47,4 @@ class Fit:
         self.cfg.star.teff = self.cfg.cfg.getfloat('Star', 'teff')
         self.cfg.star.max_teff = self.cfg.cfg.getfloat('Star', 'max_teff')
         self.cfg.star.min_teff = self.cfg.cfg.getfloat('Star', 'min_teff')
+        self.cfg.star.units = self.cfg.cfg.getboolean('Star', 'units')

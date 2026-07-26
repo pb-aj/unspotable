@@ -390,3 +390,63 @@ def intensity_animations(realistic_star, ratio_no_limb, lat= 0, fname=None,
 
 # intensity_animations(realistic_star, ratio_no_limb, lat=lat, cmap=cmap,
 #             fname=f"{results_path}/{folder_name}/emap_intensity_animation_l{lat}.mp4")
+
+
+
+def multi_phase_plot(rv_star,fname=None,cmap=cm.bam,norm=None):
+    """
+    Function to generate plot of rv_star at different phase to show both flux value and rv value
+    **NOTE** This function is not super developed as it was useful in code development but not needed in final versions.
+
+    Arguments
+    ---------
+    rv_star: object
+        A starry star object, initialized with a cfg file
+
+    fname: string (optional)
+        Name to save figure as, but if None will display figure.  Default is None
+
+    cmap: str (optional)
+        What color map to use in plots.  Default is cm.bam
+        To use the original starry colors, set to 'plasma'
+    
+    norm: Matplotlib Normalization (optional)
+        Normalization to use for map, if None uses no norm.  Default is None
+
+    Returns
+    -------
+    None
+    """
+
+    nrows = 3
+    ncols = 4
+
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols*2, squeeze=False,
+                                sharex=False, sharey=False, figsize=(12, 6))
+    
+    degree = 0
+    number_plots = nrows*ncols
+    for j in range(number_plots):
+
+        xloc = j %  ncols
+        yloc = j // ncols
+        ax = axes[yloc, xloc]
+        ax2 = axes[yloc, xloc+ncols]
+
+        rv_star.map.show(rv=False,theta=degree,ax=ax,figsize=(5,5),cmap=cmap,norm=norm)
+        ax.set_title(f"{rv_star.map.flux(theta=degree).eval()[0]:.3g}")
+
+        rv_star.map.show(rv=True,theta=degree,ax=ax2,figsize=(5,5),cmap=cm.vik)
+        ax2.set_title(f"{rv_star.map.rv(theta=degree).eval()[0]:.3g}")
+
+        degree += int(360/number_plots)
+    
+    fig.text(.22, 0.95, f"Flux Maps",fontsize="large")
+    fig.text(.72, 0.95, f"RV Maps",fontsize="large")
+    fig.suptitle(f"Plots range from 0 to 360 in {int(360/number_plots)} degree intervals.",y=0.02)
+    fig.tight_layout()
+    if fname:
+        plt.savefig(fname,bbox_inches="tight",dpi=300)
+    else:
+        plt.show()
+    plt.close(fig)

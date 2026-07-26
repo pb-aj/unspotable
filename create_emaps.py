@@ -72,7 +72,7 @@ def set_emap_directory(fit):
 
 def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.bam, 
                 cmap_norm = None, transparent=False, colorbar=True, colorbar_label = True, colorbar_tick_rotation = 0,
-                fontsize=16, labels=True, title=None, border=True, ticks=True, gridlines=True, 
+                fontsize=16, labels=True, title=None, border=True, ticks=True, gridlines=True, units=None, 
                 unseen_line= False, cover_unseen=True, dpi = 300):
     
     """
@@ -137,6 +137,9 @@ def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.ba
     gridlines: boolean (optional)
         If True, will include grid lines.  Default is True
         Only works for proj="rect"
+
+    units: str (optional)
+        Units of flux, if None will say "[Normalized]" label.  Default is None
 
     unseen_line: boolean (optional)
         Whether to include line that separates visible from invisible regions according to star's inclination.
@@ -225,10 +228,16 @@ def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.ba
         plt.imshow(image, origin="lower", cmap=cmap, extent=extent)
 
     if colorbar:
+
         cbar = plt.colorbar(aspect = 40, pad = .03, shrink = 0.95)
         cbar.ax.tick_params(labelsize=fontsize * .60, rotation = colorbar_tick_rotation)
         if colorbar_label:
-            cbar.set_label("Flux [Normalized]", size=fontsize * .75, rotation = 270, labelpad = 15)
+            if units is None:
+                cbar.set_label("Flux [Normalized]", size=fontsize * .75, rotation = 270, labelpad = 15)
+            else:
+                cbar.set_label(f"Flux [{units}]", size=fontsize * .75, rotation = 270, labelpad = 15)
+
+        cbar.ax.yaxis.get_offset_text().set_visible(False)
 
     if labels:
         plt.xlabel("Longitude [deg]",fontsize=fontsize)
@@ -464,7 +473,7 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
                 proj='moll', cmap = cm.bam, individual=True,
                 standard_cbar = True, center_flux=0, standard_indiv_cbar = True,
                 transparent=False, labels=True, title = None, border=True, 
-                ticks=False, gridlines=True, unseen_line=False, cover_unseen = True,
+                ticks=False, gridlines=True, units=None, unseen_line=False, cover_unseen = True,
                 fontsize=16, colorbar=True, colorbar_label = True, colorbar_tick_rotation = 0, dpi = 300):
     
     """
@@ -534,6 +543,9 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
 
     gridlines: boolean (optional)
         If True, will add grid lines to each axis plot.  Default is True
+
+    units: str (optional)
+        Units of flux, if None will say "[Normalized]" in label.  Default is None
 
     unseen_line: boolean (optional)
         Whether to include line that separates visible from invisible regions according to star's inclination.
@@ -919,12 +931,18 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
         fig.suptitle(title,fontsize=int(fontsize*1.5))
 
     fig.tight_layout()
-
     if colorbar and standard_cbar:
+
+
         cbar = fig.colorbar(im, ax=axes.ravel().tolist(), shrink=0.95, aspect = 40, pad = .03)
         cbar.ax.tick_params(labelsize=fontsize * .60, rotation = colorbar_tick_rotation)
         if colorbar_label:
-            cbar.set_label("Flux [Normalized]", size=fontsize * .75, rotation = 270, labelpad = 15)
+            if units is None:
+                cbar.set_label("Flux [Normalized]", size=fontsize * .75, rotation = 270, labelpad = 15)
+            else:
+                cbar.set_label(f"Flux [{units}]", size=fontsize * .75, rotation = 270, labelpad = 15)
+        
+        cbar.ax.yaxis.get_offset_text().set_visible(False)
 
     se(f"\n\tGenerating overall emap plot", dp = dpm)
     
@@ -947,7 +965,7 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
 
 def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
                  theta = np.linspace(-180, 180, 361),
-                 transparent=False, fontsize=16, 
+                 transparent=False, fontsize=16, units=None,
                  labels=True, title = None, border=True, ticks=False,
                  individual=True, color="sandybrown", 
                  centerline=True, cline_color="k", dpi=300):
@@ -984,6 +1002,9 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
 
     fontsize: int (optional)
         Sets size of axis labels and title (1.5x axis).  Default is 16
+
+    units: str (optional)
+        Units of flux, if None will say "[Normalized]" label.  Default is None
 
     labels: boolean (optional)
         Wether to add axis labels to overall plot (a represents all).  Default to False
@@ -1113,6 +1134,8 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
                 ax.set_yticklabels([f"{val:.2f}" for val in y_tick_values])
                 ax.set_ylim(min_f - amp*buffer, max_f + amp*buffer)
 
+        ax.yaxis.get_offset_text().set_visible(False)
+
         
         if not border:
             ax.set_frame_on(False)
@@ -1125,7 +1148,11 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
 
     if labels:
         fig.supxlabel("Angle of rotation [degrees]",fontsize=fontsize)
-        fig.supylabel("Flux [normalized]",fontsize=fontsize)
+
+        if units is None:
+            fig.supylabel("Flux [normalized]",fontsize=fontsize)
+        else:
+            fig.supylabel(f"Flux [{units}]",fontsize=fontsize)
 
     if title:
         fig.suptitle(title,fontsize=int(fontsize*1.5))
