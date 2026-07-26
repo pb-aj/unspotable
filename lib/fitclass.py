@@ -36,7 +36,6 @@ class Fit:
         #Simulation Parameters
         self.cfg.sim.lmax = self.cfg.cfg.getint('Sim', 'lmax')
         self.cfg.sim.nlcs = self.cfg.cfg.getint('Sim', 'nlcs')
-        self.cfg.sim.use_y00 = self.cfg.cfg.getboolean('Sim', 'use_y00')
 
         #Stellar Parameters
         self.cfg.star.r    = self.cfg.cfg.getfloat('Star', 'r')
@@ -48,3 +47,4 @@ class Fit:
         self.cfg.star.teff = self.cfg.cfg.getfloat('Star', 'teff')
         self.cfg.star.max_teff = self.cfg.cfg.getfloat('Star', 'max_teff')
         self.cfg.star.min_teff = self.cfg.cfg.getfloat('Star', 'min_teff')
+        self.cfg.star.units = self.cfg.cfg.getboolean('Star', 'units')

@@ -72,8 +72,8 @@ def set_emap_directory(fit):
 
 def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.bam, 
                 cmap_norm = None, transparent=False, colorbar=True, colorbar_label = True, colorbar_tick_rotation = 0,
-                fontsize=16, labels=True, title=None, border=True, ticks=True, gridlines=True, 
-                unseen_line= False, cover_unseen=True):
+                fontsize=16, labels=True, title=None, border=True, ticks=True, gridlines=True, units=None, 
+                unseen_line= False, cover_unseen=True, dpi = 300):
     
     """
     Generate emap flux projection depending on passed parameters
@@ -138,6 +138,9 @@ def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.ba
         If True, will include grid lines.  Default is True
         Only works for proj="rect"
 
+    units: str (optional)
+        Units of flux, if None will say "[Normalized]" label.  Default is None
+
     unseen_line: boolean (optional)
         Whether to include line that separates visible from invisible regions according to star's inclination.
         Default is False.
@@ -145,6 +148,9 @@ def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.ba
     cover_unseen: boolean (optional)
         Whether to black out region of star that is invisibale according to star's inclination.
         Default is True.
+
+    dpi: int (optional)
+        dpi to save plot as.  Default is 300 and will only work if indiv_path is set.
 
     Returns
     -------
@@ -222,10 +228,16 @@ def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.ba
         plt.imshow(image, origin="lower", cmap=cmap, extent=extent)
 
     if colorbar:
+
         cbar = plt.colorbar(aspect = 40, pad = .03, shrink = 0.95)
         cbar.ax.tick_params(labelsize=fontsize * .60, rotation = colorbar_tick_rotation)
         if colorbar_label:
-            cbar.set_label("Flux [Normalized]", size=fontsize * .75, rotation = 270, labelpad = 15)
+            if units is None:
+                cbar.set_label("Flux [Normalized]", size=fontsize * .75, rotation = 270, labelpad = 15)
+            else:
+                cbar.set_label(f"Flux [{units}]", size=fontsize * .75, rotation = 270, labelpad = 15)
+
+        cbar.ax.yaxis.get_offset_text().set_visible(False)
 
     if labels:
         plt.xlabel("Longitude [deg]",fontsize=fontsize)
@@ -449,7 +461,7 @@ def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.ba
     plt.tight_layout()
     
     if indiv_path:
-        plt.savefig(f"{indiv_path}/{fname}", dpi = 300, transparent=transparent)
+        plt.savefig(f"{indiv_path}/{fname}", dpi = dpi, transparent=transparent)
     else:
         plt.show()
 
@@ -461,8 +473,8 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
                 proj='moll', cmap = cm.bam, individual=True,
                 standard_cbar = True, center_flux=0, standard_indiv_cbar = True,
                 transparent=False, labels=True, title = None, border=True, 
-                ticks=False, gridlines=True, unseen_line=True, cover_unseen = True,
-                fontsize=16, colorbar=True, colorbar_label = True, colorbar_tick_rotation = 0):
+                ticks=False, gridlines=True, units=None, unseen_line=False, cover_unseen = True,
+                fontsize=16, colorbar=True, colorbar_label = True, colorbar_tick_rotation = 0, dpi = 300):
     
     """
     Generate single plot of all emap flux projection depending on passed parameters
@@ -532,6 +544,9 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
     gridlines: boolean (optional)
         If True, will add grid lines to each axis plot.  Default is True
 
+    units: str (optional)
+        Units of flux, if None will say "[Normalized]" in label.  Default is None
+
     unseen_line: boolean (optional)
         Whether to include line that separates visible from invisible regions according to star's inclination.
         Default is False.
@@ -553,6 +568,9 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
 
     colorbar_tick_rotation: int (optional)
         Value to rotate colorbar ticks by.  Default is 0
+
+    dpi: int (optional)
+        dpi to save plot as.  Default is 300 and will only work if emap_path is set.
 
     Returns
     -------
@@ -913,18 +931,24 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
         fig.suptitle(title,fontsize=int(fontsize*1.5))
 
     fig.tight_layout()
-
     if colorbar and standard_cbar:
+
+
         cbar = fig.colorbar(im, ax=axes.ravel().tolist(), shrink=0.95, aspect = 40, pad = .03)
         cbar.ax.tick_params(labelsize=fontsize * .60, rotation = colorbar_tick_rotation)
         if colorbar_label:
-            cbar.set_label("Flux [Normalized]", size=fontsize * .75, rotation = 270, labelpad = 15)
+            if units is None:
+                cbar.set_label("Flux [Normalized]", size=fontsize * .75, rotation = 270, labelpad = 15)
+            else:
+                cbar.set_label(f"Flux [{units}]", size=fontsize * .75, rotation = 270, labelpad = 15)
+        
+        cbar.ax.yaxis.get_offset_text().set_visible(False)
 
     se(f"\n\tGenerating overall emap plot", dp = dpm)
     
     
     if emaps_path:
-        plt.savefig(os.path.join(emaps_path, fname), transparent=transparent, dpi=300)
+        plt.savefig(os.path.join(emaps_path, fname), transparent=transparent, dpi=dpi)
     else:
         plt.show()
 
@@ -939,10 +963,12 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
     return None
 
 
-def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 361),
-                 transparent=False, fontsize=16, centerline=True,
-                 labels=True, title = None, border=True, ticks=False, cline_color="k",
-                 individual=True, color="sandybrown"):
+def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
+                 theta = np.linspace(-180, 180, 361),
+                 transparent=False, fontsize=16, units=None,
+                 labels=True, title = None, border=True, ticks=False,
+                 individual=True, color="sandybrown", 
+                 centerline=True, cline_color="k", dpi=300):
 
     """
     Function generates overall and individual light curve (lc) plots for each eigenmap (emap)  
@@ -961,8 +987,12 @@ def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 3
     emapth_path: string (optional)
         Path to folder where emap plots will be saved.  If None, will display image instead of saving
 
+    other_fname: string (optional)
+        Name of file to use when saving.  If None, will save as 'all-rlcs.png'
+        If indiv_path is None, then this parameter has no effect
+
     theta: 2D array (optional)
-        Degrees to evaluate light curve at for each emap.  Default is every degree - np.linspace(0, 360, 360)
+        Degrees to evaluate light curve at for each emap.  Default is every degree - np.linspace(0, 360, 361)
 
     *NOTE* Remaining agruments are optional and used to adjust final plot.  These are useful when using code
     to prepare a presentation/paper but not needed for general use
@@ -971,10 +1001,10 @@ def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 3
         Whether to make plots transparent.  Default to False
 
     fontsize: int (optional)
-        Sets size of axis labels and title (1.5x axis).  Default is 24
+        Sets size of axis labels and title (1.5x axis).  Default is 16
 
-    gridlines: boolean (optional)
-        If True, will add grid lines to overall plot.  Default is False
+    units: str (optional)
+        Units of flux, if None will say "[Normalized]" label.  Default is None
 
     labels: boolean (optional)
         Wether to add axis labels to overall plot (a represents all).  Default to False
@@ -1000,13 +1030,19 @@ def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 3
         Color to set curve to be (see https://matplotlib.org/stable/gallery/color/named_colors.html).  
         Default is 'sandybrown'.
 
-    #Leaving this here because I like darkcyan with the plasma cmap (starry default)
+    centerline: boolean (optional)
+        Whether to include a dotted line at center of overall curve.  Default is True
+
+    cline_color: string (optional)
+        Color to make the centerline in overall plot if centerline=True.  Default is sandybrown
+
+    dpi: int (optional)
+        dpi to save plot as.  Default is 300 and will only work if flux_name or rv_name is set.
 
     Returns
     -------
     None
     """    
-
     
     se("\tPlotting light curves:", dp = dpm)
     se("\t------------------------------------------------", dp = dpm)
@@ -1040,12 +1076,28 @@ def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 3
                 os.mkdir(indiv_path)
             
             create_rv.flux_rv_line(star,theta,flux=j_flux,flux_name=f"{indiv_path}/rlc_{j}",flux_only=True,
-                                   color=color)
+                                   color=color, transparent=transparent)
 
         if not ticks:
             ax.set_xticklabels([])
             ax.set_yticklabels([])
             ax.tick_params(left=False, bottom=False)
+
+            min_f = j_flux.min()
+            max_f = j_flux.max()
+
+            if np.isclose(max_f,0) and np.isclose(min_f,0):
+                interval = .05
+                ax.set_ylim(min_f - interval, max_f + interval)
+
+            elif max_f - min_f < 1e-10:
+                interval = max_f * .05
+                ax.set_ylim(min_f - interval * 1.05, max_f + interval * 1.05)
+
+            else:
+                amp = max_f - min_f
+                buffer = 0.05 
+                ax.set_ylim(min_f - amp*buffer, max_f + amp*buffer)
         else:
             ax.set_xticks([-90,0,90])
             ax.set_xticklabels([-90,0,90])
@@ -1056,9 +1108,17 @@ def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 3
 
             min_f = j_flux.min()
             max_f = j_flux.max()
-            if max_f - min_f < 1e-10:
+
+            if np.isclose(max_f,0) and np.isclose(min_f,0):
+                interval = .05
+                y_tick_values = [max_f - interval, np.abs(max_f), max_f + interval] 
+                ax.set_yticks(y_tick_values)
+                ax.set_yticklabels([f"{val:.2f}" for val in y_tick_values])
+                ax.set_ylim(min_f - interval, max_f + interval)
+
+            elif max_f - min_f < 1e-10:
                 interval = max_f * .05
-                y_tick_values = [max_f] 
+                y_tick_values = [max_f - interval, max_f, max_f + interval] 
                 ax.set_yticks(y_tick_values)
                 ax.set_yticklabels([f"{val:.2f}" for val in y_tick_values])
                 ax.set_ylim(min_f - interval * 1.05, max_f + interval * 1.05)
@@ -1069,10 +1129,12 @@ def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 3
                 buffer = 0.05 
 
                 middle = (max_f + min_f) / 2
-                y_tick_values = [min_f, middle, max_f] 
+                y_tick_values = [min_f, (min_f + middle) / 2, middle, (max_f + middle) / 2, max_f] 
                 ax.set_yticks(y_tick_values)
                 ax.set_yticklabels([f"{val:.2f}" for val in y_tick_values])
                 ax.set_ylim(min_f - amp*buffer, max_f + amp*buffer)
+
+        ax.yaxis.get_offset_text().set_visible(False)
 
         
         if not border:
@@ -1086,7 +1148,11 @@ def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 3
 
     if labels:
         fig.supxlabel("Angle of rotation [degrees]",fontsize=fontsize)
-        fig.supylabel("Flux [normalized]",fontsize=fontsize)
+
+        if units is None:
+            fig.supylabel("Flux [normalized]",fontsize=fontsize)
+        else:
+            fig.supylabel(f"Flux [{units}]",fontsize=fontsize)
 
     if title:
         fig.suptitle(title,fontsize=int(fontsize*1.5))
@@ -1094,7 +1160,10 @@ def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 3
     fig.tight_layout()
 
     if emaps_path:
-        plt.savefig(f"{emaps_path}/all_rlc", transparent=transparent, dpi=300)
+        if other_fname:
+            plt.savefig(f"{emaps_path}/{other_fname}", transparent=transparent, dpi=dpi)
+        else:
+            plt.savefig(f"{emaps_path}/all_rlc", transparent=transparent, dpi=dpi)
     else:
         plt.show()
 
@@ -1107,8 +1176,6 @@ def create_eflux(star, eigeny, emaps_path=None, theta = np.linspace(-180, 180, 3
     plt.close('all')
 
     return None
-
-
 
 
 

@@ -583,6 +583,153 @@ class MapBase(object):
         return tuple(images + lonlines
                     + latlines_list[0] + borders
                     + limb_image + no_limb_image)
+    
+    def _updatefig_growing(
+        self,
+        i,
+        img_list,
+        image_list,
+        img_overlay,
+        overlay,
+        projection,
+        grid,
+        lonlines_list,
+        latlines_list,
+        borders,
+        kwargs,
+        extra_lines,
+        legend_list):
+        
+        img_list[0].set_array(image_list[0][i])
+        images = [img_list[0]]
+
+        if overlay is not None:
+            img_overlay.set_array(overlay[i])
+            images += [img_overlay]
+        if (
+            projection == STARRY_ORTHOGRAPHIC_PROJECTION
+            and grid
+            and len(image_list[0]) > 1
+            and self.nw is None
+        ):
+            lonlines = lonlines_list[0]
+            lons = self._get_ortho_longitude_lines(i=i, **kwargs)
+            for n, l in enumerate(lons):
+                lonlines[n].set_xdata(l[0])
+                lonlines[n].set_ydata(l[1])
+
+        rv_image = extra_lines[0][1]
+        rv_data = extra_lines[0][0]
+
+
+        new_rv_data = np.concatenate((rv_data[:i], np.full(rv_data[i:].shape[0], np.nan)))
+        
+        # np.concatenate((rv_data[i:],rv_data[:i]))
+
+        rv_image[0].set_ydata(new_rv_data)
+
+        middle = rv_data.shape[0]//2
+
+        if legend_list and grid:
+            legend_list[1].get_texts()[0].set_text(f"$RV_0$: {round(new_rv_data[middle], 2):.2g}")
+            
+
+            return tuple(images + lonlines
+                     + latlines_list[0] + borders
+                     + rv_image + legend_list)
+        
+        elif legend_list:
+            legend_list[1].get_texts()[0].set_text(f"$RV_0$: {round(new_rv_data[middle], 2):.2g}")
+
+            return tuple(images
+                     + borders
+                     + rv_image + legend_list)
+        elif grid:
+            return tuple(images + lonlines
+                     + latlines_list[0] + borders
+                     + rv_image)
+        
+        else:
+            return tuple(images
+                     + borders
+                     + rv_image)
+        
+    def _updatefig_growing_long(
+        self,
+        i,
+        img_list,
+        image_list,
+        img_overlay,
+        overlay,
+        projection,
+        grid,
+        lonlines_list,
+        latlines_list,
+        borders,
+        kwargs,
+        extra_lines,
+        legend_list):
+        
+        img_list[0].set_array(image_list[0][i])
+        images = [img_list[0]]
+
+        img_list[1].set_array(image_list[1][i])
+        images2 = [img_list[1]]
+
+        if overlay is not None:
+            img_overlay.set_array(overlay[i])
+            images += [img_overlay]
+        if (
+            projection == STARRY_ORTHOGRAPHIC_PROJECTION
+            and grid
+            and len(image_list[0]) > 1
+            and self.nw is None
+        ):
+            lonlines = lonlines_list[0]
+            lonlines2 = lonlines_list[1]
+            lons = self._get_ortho_longitude_lines(i=i, **kwargs)
+            for n, l in enumerate(lons):
+                lonlines[n].set_xdata(l[0])
+                lonlines[n].set_ydata(l[1])
+
+                lonlines2[n].set_xdata(l[0])
+                lonlines2[n].set_ydata(l[1])
+
+        rv_image = extra_lines[0][1]
+        rv_data = extra_lines[0][0]
+
+
+        new_rv_data = np.concatenate((rv_data[:i], np.full(rv_data[i:].shape[0], np.nan)))
+        
+        # np.concatenate((rv_data[i:],rv_data[:i]))
+
+        rv_image[0].set_ydata(new_rv_data)
+
+        middle = rv_data.shape[0]//2
+
+        if legend_list and grid:
+            legend_list[1].get_texts()[0].set_text(f"$RV_0$: {round(new_rv_data[middle], 2):.2g}")
+            
+
+            return tuple(images + lonlines + images2 + lonlines2
+                     + latlines_list[0] + borders + latlines_list[1]
+                     + rv_image + legend_list)
+        
+        elif legend_list:
+            legend_list[1].get_texts()[0].set_text(f"$RV_0$: {round(new_rv_data[middle], 2):.2g}")
+
+            return tuple(images + images2
+                     + borders
+                     + rv_image + legend_list)
+        elif grid:
+            return tuple(images + lonlines  + images2 + lonlines2 
+                     + latlines_list[0] + borders + latlines_list[1]
+                     + rv_image)
+        
+        else:
+            return tuple(images + images2
+                     + borders
+                     + rv_image)
 
     def reset(self, **kwargs):
         """Reset all map coefficients and attributes.
@@ -695,9 +842,11 @@ class MapBase(object):
         bitrate = kwargs.pop("bitrate", None)
         colorbar = kwargs.pop("colorbar", False)
         colorbar_label = kwargs.pop("colorbar_label", None)
+        cbar_format = kwargs.pop("cbar_format", None)
         #added label for colorbar
         colorbar_size = kwargs.pop("colorbar_size", "5%")
         colorbar_pad = kwargs.pop("colorbar_pad", 0.03)
+        colorbar_fontsize = kwargs.pop("colorbar_fontsize", 12)
         show_image = kwargs.pop("show_image",True) #Adding option to not display the plot
         """show_image being False does not display any image but instead returns a list 
         constaining the img, image, and lonlines values of the animated image"""
@@ -708,6 +857,7 @@ class MapBase(object):
         uni_int = kwargs.pop("uni_int",1)
         latline = kwargs.pop("latline",None)
         intensity_info = kwargs.pop("intensity_info",None)
+        is_growing = kwargs.pop("is_growing",False)
         """"""
         legend_list = kwargs.pop("legend_list",None)
         transparent = kwargs.pop("transparent",False)
@@ -928,10 +1078,14 @@ class MapBase(object):
                 position="bottom", size=colorbar_size, pad=colorbar_pad
             )
             if colorbar_label:
-                cbar = fig.colorbar(img, cax=cax, orientation="horizontal")
-                cbar.set_label(colorbar_label, size=12)
+                cbar = fig.colorbar(img, cax=cax, orientation="horizontal",format=cbar_format)
+                cbar.set_label(colorbar_label, size=colorbar_fontsize)
             else:
-                fig.colorbar(img, cax=cax, orientation="horizontal")
+                fig.colorbar(img, cax=cax, orientation="horizontal",format=cbar_format)
+
+            cbar.ax.xaxis.get_offset_text().set_visible(False)
+
+        
 
         # Add a colorbar
         elif colorbar:
@@ -942,10 +1096,10 @@ class MapBase(object):
                 position="right", size=colorbar_size, pad=colorbar_pad, 
             )
             if colorbar_label:
-                cbar = fig.colorbar(img, cax=cax, orientation="vertical")
-                cbar.set_label(colorbar_label, size=12)
+                cbar = fig.colorbar(img, cax=cax, orientation="vertical",format=cbar_format)
+                cbar.set_label(colorbar_label, size=colorbar_fontsize)
             else:
-                fig.colorbar(img, cax=cax, orientation="vertical")
+                fig.colorbar(img, cax=cax, orientation="vertical",format=cbar_format)
 
         # Display or save the image / animation
         if animated:
@@ -984,35 +1138,66 @@ class MapBase(object):
 
             elif extra_image and extra_lines:
 
-                img_list = [img,extra_image[0]]
-                image_list = [image,extra_image[1]]
-                lonlines_list = [lonlines,extra_image[2]]
-                latlines_list = [latlines,extra_image[3]]
+                if is_growing:
+                    img_list = [img,extra_image[0]]
+                    image_list = [image,extra_image[1]]
+                    lonlines_list = [lonlines,extra_image[2]]
+                    latlines_list = [latlines,extra_image[3]]
 
-                ani = FuncAnimation(
-                    fig,
-                    self._updatefig_all,
-                    fargs=(
-                        img_list,
-                        image_list,
-                        img_overlay,
-                        overlay,
-                        projection,
-                        grid,
-                        lonlines_list,
-                        latlines_list,
-                        borders,
-                        kwargs,
-                        extra_lines,
-                        legend_list,
-                    ),
-                    interval=interval,
-                    blit=blit_status,
-                    frames=image.shape[0],
-                )
+                    ani = FuncAnimation(
+                        fig,
+                        self._updatefig_growing_long,
+                        fargs=(
+                            img_list,
+                            image_list,
+                            img_overlay,
+                            overlay,
+                            projection,
+                            grid,
+                            lonlines_list,
+                            latlines_list,
+                            borders,
+                            kwargs,
+                            extra_lines,
+                            legend_list,
+                        ),
+                        interval=interval,
+                        blit=blit_status,
+                        frames=image.shape[0],
+                    )
+
+                else:
+
+                    img_list = [img,extra_image[0]]
+                    image_list = [image,extra_image[1]]
+                    lonlines_list = [lonlines,extra_image[2]]
+                    latlines_list = [latlines,extra_image[3]]
+
+                    ani = FuncAnimation(
+                        fig,
+                        self._updatefig_all,
+                        fargs=(
+                            img_list,
+                            image_list,
+                            img_overlay,
+                            overlay,
+                            projection,
+                            grid,
+                            lonlines_list,
+                            latlines_list,
+                            borders,
+                            kwargs,
+                            extra_lines,
+                            legend_list,
+                        ),
+                        interval=interval,
+                        blit=blit_status,
+                        frames=image.shape[0],
+                    )
                 
 
             elif extra_image:
+
 
                 img_list = [img,extra_image[0]]
                 image_list = [image,extra_image[1]]
@@ -1041,33 +1226,64 @@ class MapBase(object):
 
             elif extra_lines:
 
-                img_list = [img]
-                image_list = [image]
-                lonlines_list = [lonlines]
-                latlines_list = [latlines]
 
-                ani = FuncAnimation(
-                    fig,
-                    self._updatefig_line,
-                    fargs=(
-                        img_list,
-                        image_list,
-                        img_overlay,
-                        overlay,
-                        projection,
-                        grid,
-                        lonlines_list,
-                        latlines_list,
-                        borders,
-                        kwargs,
-                        extra_lines,
-                        legend_list,
-                        uni_int,
-                    ),
-                    interval=interval,
-                    blit=blit_status,
-                    frames=image.shape[0],
-                )
+                if is_growing:
+                    img_list = [img]
+                    image_list = [image]
+                    lonlines_list = [lonlines]
+                    latlines_list = [latlines]
+
+                    ani = FuncAnimation(
+                        fig,
+                        self._updatefig_growing,
+                        fargs=(
+                            img_list,
+                            image_list,
+                            img_overlay,
+                            overlay,
+                            projection,
+                            grid,
+                            lonlines_list,
+                            latlines_list,
+                            borders,
+                            kwargs,
+                            extra_lines,
+                            legend_list,
+                        ),
+                        interval=interval,
+                        blit=blit_status,
+                        frames=image.shape[0],
+                    )
+
+                else:
+
+                    img_list = [img]
+                    image_list = [image]
+                    lonlines_list = [lonlines]
+                    latlines_list = [latlines]
+
+                    ani = FuncAnimation(
+                        fig,
+                        self._updatefig_line,
+                        fargs=(
+                            img_list,
+                            image_list,
+                            img_overlay,
+                            overlay,
+                            projection,
+                            grid,
+                            lonlines_list,
+                            latlines_list,
+                            borders,
+                            kwargs,
+                            extra_lines,
+                            legend_list,
+                            uni_int,
+                        ),
+                        interval=interval,
+                        blit=blit_status,
+                        frames=image.shape[0],
+                    )
                 
             else:
 
@@ -2260,6 +2476,12 @@ class LimbDarkenedBase(object):
     
     def _updatefig_intensity(i):
         return ()
+    
+    def _updatefig_growing(i):
+        return ()
+
+    def _updatefig_growing_long(i):
+        return ()
 
     def _get_flux_kwargs(self, kwargs):
         xo = kwargs.get("xo", 0.0)
@@ -2306,6 +2528,7 @@ class LimbDarkenedBase(object):
         .. note::
             Users must provide either `mu` **or** `x` and `y`.
         """
+        
         # Get the Cartesian points
         if mu is not None:
             mu = self._math.vectorize(self._math.cast(mu))
