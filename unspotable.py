@@ -74,7 +74,7 @@ def unspotable(cfile):
         scaler = 5.670374419e-8 * fit.cfg.star.teff**4
         power = int(np.floor(np.log10(scaler)))
         if power > 6:
-            units = f"W m$^{{-2}}$ * 10$^{power}$"
+            units = f"x10$^{power}$ W m$^{{-2}}$"
         else:
             units = f"W m$^{{-2}}$"
     else:
