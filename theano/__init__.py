@@ -1,4 +1,9 @@
 """
+NOTE from A.J. - changes line (2621) in link/c/cmodule.py to allow for functionality with newer numpy versions:
+blas_info = numpy.distutils.__config__.blas_ilp64_opt_info (new)
+vs.
+blas_info = numpy.distutils.__config__.blas_opt_info
+
 Theano is an optimizing compiler in Python, built to evaluate
 complicated expressions (especially matrix-valued ones) as quickly as
 possible.  Theano compiles expression graphs (see :doc:`graph` ) that
