@@ -2,7 +2,6 @@
 Main file to run un-spot-able code
 https://github.com/pb-aj/un-spot-able
 """
-
 #general imports
 import os
 import sys
