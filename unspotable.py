@@ -36,7 +36,7 @@ sys.setrecursionlimit(10000) # starry seems to have a lot of recursion
 # Whether or not to show print statements in code
 dpm = True #change to False to make quiet
 
-def unspotable(cfile):
+def unspotable(cfile, dpm=True):
 
     se("\n\033[32mCalling create_eigens:\033[0m", dp = dpm)
     se("----------------------------------------------------------------------------", dp = dpm)

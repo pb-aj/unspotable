@@ -1071,8 +1071,8 @@ class MapBase(object):
             )
 
         if colorbar == "bottom":
-            if not custom_ax:
-                fig.subplots_adjust(right=0.85)
+            # if not custom_ax:
+            #     fig.subplots_adjust(right=0.85)
             divider = make_axes_locatable(ax)
             cax = divider.append_axes(
                 position="bottom", size=colorbar_size, pad=colorbar_pad

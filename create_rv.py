@@ -123,7 +123,7 @@ def adjust_star(star, lower_limit=0, uni_comp = 1, iterator = .2):
 def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None,
                  flux_name=None,rv_name=None,flux_only=False,rv_only=False,
                  transparent=False, labels=True, title = None, border=True, ticks=True, units=None,
-                 fontsize=16, color="sandybrown", centerline=True, cline_color="k", dpi=300):
+                 fontsize=16, color="sandybrown", centerline=True, cline_color="k", dpi=300, lw=2):
     """
     Generate plots to show rotational light curves (flux) and/or rv curves for a set rv_star and theta
 
@@ -191,6 +191,9 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
     dpi: int (optional)
         dpi to save plot as.  Default is 300 and will only work if flux_name or rv_name is set.
 
+    lw: int (optional)
+        lw to use for plots:  Default is 2
+
     Returns
     -------
     None
@@ -203,7 +206,7 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
         # Plot the flux
         plt.figure(figsize=(12, 5))
 
-        plt.plot(theta, flux, color=color)
+        plt.plot(theta, flux, color=color, lw=lw)
 
 
         if labels:
@@ -302,11 +305,11 @@ def flux_rv_line(rv_star,theta = np.linspace(-180, 180, 361), flux=None, rv=None
 
         # Plot the radial velocity
         plt.figure(figsize=(12, 5))
-        plt.plot(theta, rv, color=color)
+        plt.plot(theta, rv, color=color, lw=lw)
 
         if labels:
             plt.xlabel("Angle of rotation [degrees]", fontsize=fontsize)
-            plt.ylabel("Radial Velocity [m/s]", fontsize=fontsize)
+            plt.ylabel(f"Radial Velocity [m s$^{{-1}}$]", fontsize=fontsize)
 
         if title:
             plt.title(title,fontsize=fontsize*1.5)
@@ -369,7 +372,8 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                    centerline=True, cline_color="k",guideline=True, guideline_color="k", 
                    dpi=300, html5_video=True):
     """
-    {desc} - needs so muuch work vvvv
+    Function to create various animated plots of maps.  
+    Has functionality to make only flux or RV maps or do a complete plot with maps and lines in both modes.
 
     Arguments
     ---------
@@ -676,7 +680,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
 
                 if colorbar_label and colorbar:
                     plt.subplots_adjust(hspace=0.25)
-                    rv_cbar_label = "Line of Sight Velocity [m/s]"
+                    rv_cbar_label = f"Line of Sight Velocity [m s$^{{-1}}$]"
 
                 else:
                     rv_cbar_label = None
@@ -712,7 +716,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
 
                 if curve_labels:
                     ax_rv.set_xlabel("Angle of rotation [degrees]", fontsize=fontsize)
-                    ax_rv.set_ylabel("Radial velocity [m/s]", fontsize=fontsize)
+                    ax_rv.set_ylabel(f"Radial velocity [m s$^{{-1}}$]", fontsize=fontsize)
 
                 if map_labels:
                     axes[0,0].set_title("Radial Velocity Projection", fontsize=fontsize)
@@ -766,7 +770,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
 
                 if colorbar_label and colorbar:
                     plt.subplots_adjust(hspace=0.25)
-                    rv_cbar_label = "Line of Sight Velocity [m/s]"
+                    rv_cbar_label = f"Line of Sight Velocity [m s$^{{-1}}$]"
 
                 else:
                     rv_cbar_label = None
@@ -812,7 +816,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                     flux_cbar_label = "Flux [Normalized]"
                 else:
                     flux_cbar_label = f"Flux [{units}]"
-                rv_cbar_label = "Line of Sight Velocity [m/s]"
+                rv_cbar_label = f"Line of Sight Velocity [m s$^{{-1}}$]"
 
             else:
                 flux_cbar_label = None
@@ -878,7 +882,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                     ax_flux.set_ylabel(f"Flux [{units}]", fontsize=fontsize)
 
                 ax_rv.set_xlabel("Angle of rotation [degrees]", fontsize=fontsize)
-                ax_rv.set_ylabel("Radial velocity [m/s]", fontsize=fontsize)
+                ax_rv.set_ylabel(f"Radial velocity [m s$^{{-1}}$]", fontsize=fontsize)
 
             if map_labels:
                 axes[0,0].set_title("Flux Projection", fontsize=fontsize)
@@ -1004,7 +1008,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                     flux_cbar_label = "Flux [Normalized]"
                 else:
                     flux_cbar_label = f"Flux [{units}]"
-                rv_cbar_label = "Line of Sight Velocity [m/s]"
+                rv_cbar_label = f"Line of Sight Velocity [m s$^{{-1}}$]"
 
             else:
                 flux_cbar_label = None

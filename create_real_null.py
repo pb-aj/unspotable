@@ -83,7 +83,7 @@ def normalize_null_eigens(cfile, prompt_user=True):
             
         se(f"\tReading previously stored normalized null eigen results from:\n\t\033[34m{norm_eigen_path}\033[0m",dp = dpm)
         try:
-            norm_eigeny = np.loadtxt(f"{norm_eigen_path}/norm_null_eigeny.txt")
+            norm_eigeny = np.loadtxt(f"{norm_eigen_path}/norm-null-eigeny.txt")
             se("----------------------------------------------------------------------------", dp = dpm)
 
             return norm_eigeny, fit
@@ -137,7 +137,7 @@ def normalize_null_eigens(cfile, prompt_user=True):
 
 
     se(f"\n\tStoring normalized null maps to:\n\t\033[34m{norm_eigen_path}\033[0m", dp = dpm)
-    np.savetxt(f"{norm_eigen_path}/norm_null_eigeny.txt", null_eigeny)
+    np.savetxt(f"{norm_eigen_path}/norm-null-eigeny.txt", null_eigeny)
 
     se("----------------------------------------------------------------------------", dp = dpm)   
 
@@ -214,8 +214,8 @@ def set_up_real_map(realistic_star, inv_realistic_star, uni_star_limb, ratio_no_
     uni_value = np.max(uni_star_limb.map.intensity(lat=0, lon=theta_neg_90,rv=False).eval())
 
 
-    amount_below_uni = uni_value - realistic_star.map.minimize()[-1].eval()
-    amount_above_uni = uni_value - inv_realistic_star.map.minimize()[-1].eval()
+    amount_below_uni = uni_value - realistic_star.map.minimize(ntries=20, oversample=2)[-1].eval()
+    amount_above_uni = uni_value - inv_realistic_star.map.minimize(ntries=20, oversample=2)[-1].eval()
 
     ratio_below = (uni_value - amount_below_uni) / uni_value
     ratio_above = (amount_above_uni + uni_value) / uni_value
@@ -239,8 +239,8 @@ def set_up_real_map(realistic_star, inv_realistic_star, uni_star_limb, ratio_no_
 
         inv_realistic_star.map[0,0] += interval
 
-        amount_below_uni = uni_value - realistic_star.map.minimize()[-1].eval()
-        amount_above_uni = uni_value - inv_realistic_star.map.minimize()[-1].eval()
+        amount_below_uni = uni_value - realistic_star.map.minimize(ntries=20, oversample=2)[-1].eval()
+        amount_above_uni = uni_value - inv_realistic_star.map.minimize(ntries=20, oversample=2)[-1].eval()
 
         ratio_below = (uni_value - amount_below_uni) / uni_value
         ratio_above = (amount_above_uni + uni_value) / uni_value
@@ -299,6 +299,7 @@ def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180
 
     if store_scaled:
         scaled_null_eigens = []
+        scaled_null_values = []
 
     se("\tLooping through each null map and generating plots:",dp = dpm)
     se("\t------------------------------------------------",dp = dpm)
@@ -335,6 +336,7 @@ def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180
             
         if store_scaled:
             scaled_null_eigens.append(realistic_star.map.y.eval())
+            scaled_null_values.append([ratio_no_limb,realistic_star.map.amp.eval()])
             
 
         se(f'\t\t\u2022 Creating plots for "Null map {i}"', dp=dpm)
@@ -363,8 +365,14 @@ def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180
 
         subdir = cfg.folder
         outdir = os.path.join(cfg.outdir, subdir)
-        norm_eigen_path = os.path.join(outdir,"stored-norm-null-eigens")
+        norm_eigen_path = os.path.join(outdir,"stored-scaled-null-eigens")
+
+        if not os.path.isdir(norm_eigen_path):
+                os.mkdir(norm_eigen_path)
+
         np.savetxt(f"{norm_eigen_path}/scaled-null-eigeny.txt", np.array(scaled_null_eigens))
+        np.savetxt(f"{norm_eigen_path}/scaled-null-amps.txt", np.array(scaled_null_values))
+
 
 
 if __name__ == "__main__":
