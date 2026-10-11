@@ -209,7 +209,7 @@ def set_up_real_map(realistic_star, inv_realistic_star, uni_star_limb, ratio_no_
     uni_star_limb.map.amp = ratio_no_limb
     
 
-    uni_star_limb.map[0,0] = uni_comp #* ratio_no_limb
+    uni_star_limb.map[0,0] = uni_comp
     uni_star_limb.map[1:,:] = 0
     uni_value = np.max(uni_star_limb.map.intensity(lat=0, lon=theta_neg_90,rv=False).eval())
 
