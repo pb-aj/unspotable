@@ -36,7 +36,20 @@ sys.setrecursionlimit(10000) # starry seems to have a lot of recursion
 # Whether or not to show print statements in code
 dpm = True #change to False to make quiet
 
-def unspotable(cfile):
+def unspotable(cfile, dpm=True):
+    """
+    [desc]
+
+    Arguments
+    ---------
+    x: type (optional)
+        [desc]
+
+    Returns
+    -------
+    x: type
+        [desc]
+    """
 
     se("\n\033[32mCalling create_eigens:\033[0m", dp = dpm)
     se("----------------------------------------------------------------------------", dp = dpm)
@@ -45,18 +58,22 @@ def unspotable(cfile):
     
     emaps_path = create_emaps.set_emap_directory(fit)
 
+    A = ecurves.T
+
+    R = np.linalg.matrix_rank(A)
+
     se("\n\033[32mCreating emap visualizations:\033[0m", dp = dpm)
     se("----------------------------------------------------------------------------", dp = dpm)
 
 
-    create_emaps.create_emaps(star, eigeny, emaps_path=emaps_path)
+    create_emaps.create_emaps(star, eigeny, emaps_path=emaps_path, rank=R)
 
     se("----------------------------------------------------------------------------", dp = dpm)
 
     se("\n\033[32mCreating light curve visualizations:\033[0m", dp = dpm)
     se("----------------------------------------------------------------------------", dp = dpm)
 
-    create_emaps.create_eflux(star, eigeny, emaps_path=emaps_path)
+    create_emaps.create_eflux(star, eigeny, emaps_path=emaps_path, rank=R)
 
     se("----------------------------------------------------------------------------", dp = dpm)
 

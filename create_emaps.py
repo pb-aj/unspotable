@@ -240,8 +240,12 @@ def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.ba
         cbar.ax.yaxis.get_offset_text().set_visible(False)
 
     if labels:
-        plt.xlabel("Longitude [deg]",fontsize=fontsize)
-        plt.ylabel("Latitude [deg]",fontsize=fontsize)
+        if proj == "rect":
+            plt.xlabel("Longitude [deg]",fontsize=fontsize)
+            plt.ylabel("Latitude [deg]",fontsize=fontsize)
+        else:
+            plt.xlabel("Longitude",fontsize=fontsize)
+            plt.ylabel("Latitude",fontsize=fontsize)
 
     if title:
         plt.title(title,fontsize=int(fontsize*1.5))
@@ -472,7 +476,8 @@ def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.ba
 def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
                 proj='moll', cmap = cm.bam, individual=True,
                 standard_cbar = True, center_flux=0, standard_indiv_cbar = True,
-                transparent=False, labels=True, title = None, border=True, 
+                transparent=False, labels=True, title = None, border=True,
+                shrink_labels=True, number_maps = True, rank = None,
                 ticks=False, gridlines=True, units=None, unseen_line=False, cover_unseen = True,
                 fontsize=16, colorbar=True, colorbar_label = True, colorbar_tick_rotation = 0, dpi = 300):
     
@@ -529,13 +534,23 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
         Whether to make plots transparent.  Default to False
 
     labels: boolean (optional)
-        Wether to add axis labels to overall plot.  Default to True
+        Whether to add axis labels to overall plot.  Default to True
 
     title: str (optional)
         If value passed, will set it as the title.  Default is None
 
     border: boolean (optional)
-        Wether to add border around each axis plot on overall plot.  Default to True
+        Whether to add border around each axis plot on overall plot.  Default to True
+
+    shrink_labels: boolean (optional)
+        Whether to shrink x and y axis labels to be on bottom left map.  Default to True
+        *NOTE* only has an effect if labels=True
+    
+    number_maps: boolean (optional)
+        Whether to add numbers to each eiegnmap starting at 1 and counting up.  Default to True
+
+    rank: int (optional)
+        If number is passed, will use it to count observable and null maps independently.  Default is None
 
     ticks: boolean (optional)
         If True, will add ticks and values to to each axis plot.  Default is False
@@ -647,7 +662,7 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
     else:
         fig, axes = plt.subplots(nrows=nrows, ncols=ncols, squeeze=False,
                              sharex=True, sharey=True, figsize=(10,7))
-    
+
     if individual and emaps_path:
         se(f"\n\tGenerating individual emap plots", dp = dpm)
 
@@ -687,6 +702,15 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
         ax = axes[yloc, xloc]
 
         rendered_map = rendered_maps[j]
+
+        if xloc == 0 and yloc == nrows - 1:
+            if labels and shrink_labels:
+                if proj == "rect":
+                    ax.set_xlabel("Longitude [deg]",fontsize=fontsize * .75)
+                    ax.set_ylabel("Latitude [deg]",fontsize=fontsize * .75)
+                else:
+                    ax.set_xlabel("Longitude",fontsize=fontsize * .75)
+                    ax.set_ylabel("Latitude",fontsize=fontsize * .75)
         
         if standard_cbar:
             im = ax.imshow(rendered_map,
@@ -700,6 +724,17 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
                     cmap=cmap,
                     extent=extent,
                     norm=None)
+
+
+        if number_maps:
+            if rank:
+                if j < rank:
+                    ax.text(x=-.02, y=.92, s=f"O$_{{{j+1}}}$", fontsize=fontsize*.75, transform=ax.transAxes,color="green")
+                else:
+                    ax.text(x=-.02, y=.92, s=f"N$_{{{j+1-rank}}}$", fontsize=fontsize*.75, transform=ax.transAxes,color="red")
+            else:
+                ax.text(x=0, y=.85, s=f"{j+1}", fontsize=fontsize*.75, transform=ax.transAxes)
+
 
         
         if individual and emaps_path:
@@ -923,9 +958,14 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
             ax.set_frame_on(False)
           
 
-    if labels:
-        fig.supxlabel("Longitude [deg]",fontsize=fontsize)
-        fig.supylabel("Latitude [deg]",fontsize=fontsize)
+    if labels and not shrink_labels:
+        if proj == "rect":
+            fig.supxlabel("Longitude [deg]",fontsize=fontsize)
+            fig.supylabel("Latitude [deg]",fontsize=fontsize)
+        else:
+            fig.supxlabel("Longitude",fontsize=fontsize)
+            fig.supylabel("Latitude",fontsize=fontsize)
+
 
     if title:
         fig.suptitle(title,fontsize=int(fontsize*1.5))
@@ -967,6 +1007,7 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
                  theta = np.linspace(-180, 180, 361),
                  transparent=False, fontsize=16, units=None,
                  labels=True, title = None, border=True, ticks=False,
+                 shrink_labels=True, number_maps = True, rank=None,
                  individual=True, color="sandybrown", 
                  centerline=True, cline_color="k", dpi=300):
 
@@ -1007,16 +1048,26 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
         Units of flux, if None will say "[Normalized]" label.  Default is None
 
     labels: boolean (optional)
-        Wether to add axis labels to overall plot (a represents all).  Default to False
+        Whether to add axis labels to overall plot (a represents all).  Default to False
 
     title: str (optional)
         If value passed, will set it as the title.  Default is None
 
     border: boolean (optional)
-        Wether to add border around each axis plot on overall plot.  Default to False
+        Whether to add border around each axis plot on overall plot.  Default to False
 
     ticks: boolean (optional)
         If True, will add ticks and values to overall plot.  Default is False
+
+    shrink_labels: boolean (optional)
+        Whether to shrink x and y axis labels to be on bottom left map.  Default to True
+        *NOTE* only has an effect if labels=True
+        
+    number_maps: boolean (optional)
+        Whether to add numbers to each eiegnmap starting at 1 and counting up.  Default to True
+
+    rank: int (optional)
+        If number is passed, will use it to count observable and null maps independently.  Default is None
 
     gridcolor: string (optional)
         Color to set curve to be (see https://matplotlib.org/stable/gallery/color/named_colors.html).  
@@ -1068,6 +1119,24 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
         j_flux = star.map.flux(theta=theta).eval()
         
         ax.plot(theta, j_flux,color=color)
+
+        if number_maps:
+            if rank:
+                if j < rank:
+                    ax.text(x=0.02, y=.75, s=f"O$_{{{j+1}}}$", fontsize=fontsize*.75, transform=ax.transAxes,color="green")
+                else:
+                    ax.text(x=0.02, y=.75, s=f"N$_{{{j+1-rank}}}$", fontsize=fontsize*.75, transform=ax.transAxes,color="red")
+            else:
+                ax.text(x=.02, y=.8, s=f"{j+1}", fontsize=fontsize*.5, transform=ax.transAxes)
+
+        if xloc == 0 and yloc == nrows - 1:
+            if labels and shrink_labels:
+                ax.set_xlabel("Angle of rotation [degrees]",fontsize=fontsize*.5)
+                
+                if units is None:
+                    ax.set_ylabel("Flux [normalized]",fontsize=fontsize*.5)
+                else:
+                    ax.set_ylabel(f"Flux [{units}]",fontsize=fontsize*.5)
 
         if individual and emaps_path:
             indiv_path = os.path.join(emaps_path, f"rlc")
@@ -1146,7 +1215,7 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
 
     se(f"\tGenerating overall light curve plot", dp = dpm)
 
-    if labels:
+    if labels and not shrink_labels:
         fig.supxlabel("Angle of rotation [degrees]",fontsize=fontsize)
 
         if units is None:
@@ -1203,15 +1272,18 @@ if __name__ == "__main__":
     
     emaps_path = set_emap_directory(fit)
 
+    A = ecurves.T
 
-    create_emaps(star, eigeny, emaps_path=emaps_path)
+    R = np.linalg.matrix_rank(A)
+
+    create_emaps(star, eigeny, emaps_path=emaps_path, rank=R)
 
     se("----------------------------------------------------------------------------", dp = dpm)
 
     se("\n\033[32mCreating light curve visualizations:\033[0m", dp = dpm)
     se("----------------------------------------------------------------------------", dp = dpm)
 
-    create_eflux(star, eigeny, emaps_path=emaps_path)
+    create_eflux(star, eigeny, emaps_path=emaps_path, rank=R)
 
     se("----------------------------------------------------------------------------", dp = dpm)
 
