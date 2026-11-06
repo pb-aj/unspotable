@@ -43,6 +43,19 @@ sys.setrecursionlimit(10000) # starry seems to have a lot of recursion
 dpm = True #change to False to make quiet
 
 def normalize_null_eigens(cfile, prompt_user=True):
+    """
+    [desc]
+
+    Arguments
+    ---------
+    x: type (optional)
+        [desc]
+
+    Returns
+    -------
+    x: type
+        [desc]
+    """
 
     fit = fc.Fit()
 
@@ -146,7 +159,17 @@ def normalize_null_eigens(cfile, prompt_user=True):
 
 def set_real_directory(fit):
     """
-    
+    [desc]
+
+    Arguments
+    ---------
+    x: type (optional)
+        [desc]
+
+    Returns
+    -------
+    x: type
+        [desc]
     """
 
     cfg = fit.cfg
@@ -164,6 +187,19 @@ def set_real_directory(fit):
 
 
 def set_up_stars(fit, eigeny, uni_comp = 1, theta_neg_90 = np.linspace(-90,90,180)):
+    """
+    [desc]
+
+    Arguments
+    ---------
+    x: type (optional)
+        [desc]
+
+    Returns
+    -------
+    x: type
+        [desc]
+    """
 
     cfg = fit.cfg
     lmax = cfg.sim.lmax
@@ -205,6 +241,19 @@ def set_up_stars(fit, eigeny, uni_comp = 1, theta_neg_90 = np.linspace(-90,90,18
 def set_up_real_map(realistic_star, inv_realistic_star, uni_star_limb, ratio_no_limb, 
                     uni_comp = 1, theta_neg_90 = np.linspace(-90,90,180),
                     lower_fraction = .42, upper_fraction = 1.35, interval=.1):
+    """
+    [desc]
+
+    Arguments
+    ---------
+    x: type (optional)
+        [desc]
+
+    Returns
+    -------
+    x: type
+        [desc]
+    """
     
     uni_star_limb.map.amp = ratio_no_limb
     
@@ -258,6 +307,19 @@ def set_up_real_map(realistic_star, inv_realistic_star, uni_star_limb, ratio_no_
     return realistic_star, inv_realistic_star, uni_star_limb, uni_comp, ratio_below, ratio_above, uni_value
 
 def scale_real_map(realistic_star, uni_star_limb, scale_value, uni_comp, ratio_no_limb, scaler="lc"):
+    """
+    [desc]
+
+    Arguments
+    ---------
+    x: type (optional)
+        [desc]
+
+    Returns
+    -------
+    x: type
+        [desc]
+    """
 
     realistic_star.map.amp = ratio_no_limb
     uni_star_limb.map.amp = ratio_no_limb
@@ -282,6 +344,20 @@ def scale_real_map(realistic_star, uni_star_limb, scale_value, uni_comp, ratio_n
     
 def create_real_null(null_eigens, fit, results_path, theta=np.linspace(0,360,180), uni_comp = 1,
                      scale_star=1, scaler="lc", cmap=cm.buda, store_scaled=True, units=None):
+
+    """
+    [desc]
+
+    Arguments
+    ---------
+    x: type (optional)
+        [desc]
+
+    Returns
+    -------
+    x: type
+        [desc]
+    """
 
     se("\tCalculating Flux Range Limits\n", dp=dpm)
 

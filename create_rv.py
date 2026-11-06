@@ -680,7 +680,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
 
                 if colorbar_label and colorbar:
                     plt.subplots_adjust(hspace=0.25)
-                    rv_cbar_label = f"Line of Sight Velocity [m s$^{{-1}}$]"
+                    rv_cbar_label = f"Flux Weighted Line of Sight Velocity [F/F$_\mathrm{{LC}}$ x m s$^{{-1}}$]"
 
                 else:
                     rv_cbar_label = None
@@ -770,7 +770,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
 
                 if colorbar_label and colorbar:
                     plt.subplots_adjust(hspace=0.25)
-                    rv_cbar_label = f"Line of Sight Velocity [m s$^{{-1}}$]"
+                    rv_cbar_label = f"Flux Weighted Line of Sight Velocity [F/F$_\mathrm{{LC}}$ x m s$^{{-1}}$]"
 
                 else:
                     rv_cbar_label = None
@@ -816,7 +816,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                     flux_cbar_label = "Flux [Normalized]"
                 else:
                     flux_cbar_label = f"Flux [{units}]"
-                rv_cbar_label = f"Line of Sight Velocity [m s$^{{-1}}$]"
+                rv_cbar_label = f"Flux Weighted Line of Sight Velocity [F/F$_\mathrm{{LC}}$ x m s$^{{-1}}$]"
 
             else:
                 flux_cbar_label = None
@@ -1008,7 +1008,7 @@ def map_animations(rv_star,theta = np.linspace(0, 360, 181)[:-1], fname=None, cm
                     flux_cbar_label = "Flux [Normalized]"
                 else:
                     flux_cbar_label = f"Flux [{units}]"
-                rv_cbar_label = f"Line of Sight Velocity [m s$^{{-1}}$]"
+                rv_cbar_label = f"Flux Weighted Line of Sight Velocity [F/F$_\mathrm{{LC}}$ x m s$^{{-1}}$]"
 
             else:
                 flux_cbar_label = None

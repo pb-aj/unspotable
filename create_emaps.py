@@ -240,8 +240,12 @@ def emap_plot(star, indiv_path=None, proj='moll', other_fname=None, cmap = cm.ba
         cbar.ax.yaxis.get_offset_text().set_visible(False)
 
     if labels:
-        plt.xlabel("Longitude [deg]",fontsize=fontsize)
-        plt.ylabel("Latitude [deg]",fontsize=fontsize)
+        if proj == "rect":
+            plt.xlabel("Longitude [deg]",fontsize=fontsize)
+            plt.ylabel("Latitude [deg]",fontsize=fontsize)
+        else:
+            plt.xlabel("Longitude",fontsize=fontsize)
+            plt.ylabel("Latitude",fontsize=fontsize)
 
     if title:
         plt.title(title,fontsize=int(fontsize*1.5))
@@ -473,7 +477,7 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
                 proj='moll', cmap = cm.bam, individual=True,
                 standard_cbar = True, center_flux=0, standard_indiv_cbar = True,
                 transparent=False, labels=True, title = None, border=True,
-                shrink_labels=True, number_maps = True,
+                shrink_labels=True, number_maps = True, rank = None,
                 ticks=False, gridlines=True, units=None, unseen_line=False, cover_unseen = True,
                 fontsize=16, colorbar=True, colorbar_label = True, colorbar_tick_rotation = 0, dpi = 300):
     
@@ -544,6 +548,9 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
     
     number_maps: boolean (optional)
         Whether to add numbers to each eiegnmap starting at 1 and counting up.  Default to True
+
+    rank: int (optional)
+        If number is passed, will use it to count observable and null maps independently.  Default is None
 
     ticks: boolean (optional)
         If True, will add ticks and values to to each axis plot.  Default is False
@@ -698,8 +705,12 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
 
         if xloc == 0 and yloc == nrows - 1:
             if labels and shrink_labels:
-                ax.set_xlabel("Longitude [deg]",fontsize=fontsize * .75)
-                ax.set_ylabel("Latitude [deg]",fontsize=fontsize * .75)
+                if proj == "rect":
+                    ax.set_xlabel("Longitude [deg]",fontsize=fontsize * .75)
+                    ax.set_ylabel("Latitude [deg]",fontsize=fontsize * .75)
+                else:
+                    ax.set_xlabel("Longitude",fontsize=fontsize * .75)
+                    ax.set_ylabel("Latitude",fontsize=fontsize * .75)
         
         if standard_cbar:
             im = ax.imshow(rendered_map,
@@ -716,7 +727,13 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
 
 
         if number_maps:
-            ax.text(x=0, y=.85, s=f"{j+1}", fontsize=fontsize*.75, transform=ax.transAxes)
+            if rank:
+                if j < rank:
+                    ax.text(x=-.02, y=.92, s=f"O$_{{{j+1}}}$", fontsize=fontsize*.75, transform=ax.transAxes,color="green")
+                else:
+                    ax.text(x=-.02, y=.92, s=f"N$_{{{j+1-rank}}}$", fontsize=fontsize*.75, transform=ax.transAxes,color="red")
+            else:
+                ax.text(x=0, y=.85, s=f"{j+1}", fontsize=fontsize*.75, transform=ax.transAxes)
 
 
         
@@ -942,8 +959,13 @@ def create_emaps(star, eigeny, emaps_path=None, other_fname=None,
           
 
     if labels and not shrink_labels:
-        fig.supxlabel("Longitude [deg]",fontsize=fontsize)
-        fig.supylabel("Latitude [deg]",fontsize=fontsize)
+        if proj == "rect":
+            fig.supxlabel("Longitude [deg]",fontsize=fontsize)
+            fig.supylabel("Latitude [deg]",fontsize=fontsize)
+        else:
+            fig.supxlabel("Longitude",fontsize=fontsize)
+            fig.supylabel("Latitude",fontsize=fontsize)
+
 
     if title:
         fig.suptitle(title,fontsize=int(fontsize*1.5))
@@ -985,7 +1007,7 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
                  theta = np.linspace(-180, 180, 361),
                  transparent=False, fontsize=16, units=None,
                  labels=True, title = None, border=True, ticks=False,
-                 shrink_labels=True, number_maps = True,
+                 shrink_labels=True, number_maps = True, rank=None,
                  individual=True, color="sandybrown", 
                  centerline=True, cline_color="k", dpi=300):
 
@@ -1044,6 +1066,9 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
     number_maps: boolean (optional)
         Whether to add numbers to each eiegnmap starting at 1 and counting up.  Default to True
 
+    rank: int (optional)
+        If number is passed, will use it to count observable and null maps independently.  Default is None
+
     gridcolor: string (optional)
         Color to set curve to be (see https://matplotlib.org/stable/gallery/color/named_colors.html).  
         Default is 'darkgrey'.
@@ -1096,7 +1121,13 @@ def create_eflux(star, eigeny, emaps_path=None, other_fname=None,
         ax.plot(theta, j_flux,color=color)
 
         if number_maps:
-            ax.text(x=.02, y=.8, s=f"{j+1}", fontsize=fontsize*.5, transform=ax.transAxes)
+            if rank:
+                if j < rank:
+                    ax.text(x=0.02, y=.75, s=f"O$_{{{j+1}}}$", fontsize=fontsize*.75, transform=ax.transAxes,color="green")
+                else:
+                    ax.text(x=0.02, y=.75, s=f"N$_{{{j+1-rank}}}$", fontsize=fontsize*.75, transform=ax.transAxes,color="red")
+            else:
+                ax.text(x=.02, y=.8, s=f"{j+1}", fontsize=fontsize*.5, transform=ax.transAxes)
 
         if xloc == 0 and yloc == nrows - 1:
             if labels and shrink_labels:
@@ -1241,15 +1272,18 @@ if __name__ == "__main__":
     
     emaps_path = set_emap_directory(fit)
 
+    A = ecurves.T
 
-    create_emaps(star, eigeny, emaps_path=emaps_path)
+    R = np.linalg.matrix_rank(A)
+
+    create_emaps(star, eigeny, emaps_path=emaps_path, rank=R)
 
     se("----------------------------------------------------------------------------", dp = dpm)
 
     se("\n\033[32mCreating light curve visualizations:\033[0m", dp = dpm)
     se("----------------------------------------------------------------------------", dp = dpm)
 
-    create_eflux(star, eigeny, emaps_path=emaps_path)
+    create_eflux(star, eigeny, emaps_path=emaps_path, rank=R)
 
     se("----------------------------------------------------------------------------", dp = dpm)
 
